@@ -39,7 +39,7 @@ struct etnaviv_dri2_info {
 	char *devname;
 };
 
-+static Bool etnaviv_replace_drawable(DrawablePtr drawable, PixmapPtr pixmap)
+static Bool etnaviv_replace_drawable(DrawablePtr drawable, PixmapPtr pixmap)
 {
 	PixmapPtr old_pixmap = drawable_pixmap(drawable);
 	struct etnaviv_pixmap *opix;
