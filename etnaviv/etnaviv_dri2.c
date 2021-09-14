@@ -39,6 +39,35 @@ struct etnaviv_dri2_info {
 	char *devname;
 };
 
++static Bool etnaviv_replace_drawable(DrawablePtr drawable, PixmapPtr pixmap)
+{
+	PixmapPtr old_pixmap = drawable_pixmap(drawable);
+	struct etnaviv_pixmap *opix;
+	GCPtr gc;
+
+	/* Copy the old drawable to the new buffer */
+
+	gc = GetScratchGC(pixmap->drawable.depth, drawable->pScreen);
+	if (!gc)
+		return FALSE;
+	ValidateGC(&pixmap->drawable, gc);
+	
+	gc->ops->CopyArea(drawable, &pixmap->drawable, gc, 0, 0,
+			  drawable->width, drawable->height,
+			  0, 0);
+	FreeScratchGC(gc);
+
+	opix = etnaviv_get_pixmap_priv(old_pixmap);
+	if (opix) {
+		etnaviv_set_pixmap_priv(old_pixmap,
+					etnaviv_get_pixmap_priv(pixmap));
+		etnaviv_set_pixmap_priv(pixmap, opix);
+	}
+
+	return TRUE;
+}
+
+
 static DRI2Buffer2Ptr etnaviv_dri2_CreateBuffer(DrawablePtr drawable,
 	unsigned int attachment, unsigned int format)
 {
@@ -52,9 +81,14 @@ static DRI2Buffer2Ptr etnaviv_dri2_CreateBuffer(DrawablePtr drawable,
 		return NULL;
 
 	if (attachment == DRI2BufferFrontLeft) {
-		pixmap = drawable_pixmap(drawable);
-
-		if (!etnaviv_get_pixmap_priv(pixmap)) {
+		struct etnaviv_pixmap *vpix;
+		uint32_t pitch;
+ 		pixmap = drawable_pixmap(drawable);
+		vpix = etnaviv_get_pixmap_priv(pixmap);
+		pitch = etnaviv_3d_pitch(pixmap->drawable.width,
+					 pixmap->drawable.bitsPerPixel);
+		
+		if (!vpix || vpix->pitch < pitch) {
 			/* Force the backing buffer to be reallocated */
 			drawable = &pixmap->drawable;
 			pixmap = NULL;
@@ -68,6 +102,10 @@ static DRI2Buffer2Ptr etnaviv_dri2_CreateBuffer(DrawablePtr drawable,
 						   CREATE_PIXMAP_USAGE_GPU |
 						   CREATE_PIXMAP_USAGE_3D);
 		if (!pixmap)
+			goto err;
+		
+		if (attachment == DRI2BufferFrontLeft &&
+		    !etnaviv_replace_drawable(drawable, pixmap))
 			goto err;
 	}
 
