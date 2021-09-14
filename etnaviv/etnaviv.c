@@ -688,6 +688,17 @@ static Bool etnaviv_alloc_etna_bo(ScreenPtr pScreen, struct etnaviv *etnaviv,
 static PixmapPtr etnaviv_CreatePixmap(ScreenPtr pScreen, int w, int h,
 	int depth, unsigned usage_hint)
 {
+#ifdef HAVE_DRI2
+	/*
+	 * With the texture-from-pixmap extension any pixmap may end up as a
+	 * GL texture, which in turn can be bound to an FBO for rendering, so
+	 * all pixmaps must be aligned properly for 3D usage if DRI2 is
+	 * enabled.
+	 */
+	if (etnaviv->dri2_enabled)
+		usage_hint |= CREATE_PIXMAP_USAGE_3D;
+#endif
+	
 	struct etnaviv *etnaviv = etnaviv_get_screen_priv(pScreen);
 	struct etnaviv_format fmt = { .swizzle = DE_SWIZZLE_ARGB, };
 	PixmapPtr pixmap;
