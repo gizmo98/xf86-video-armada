@@ -21,7 +21,7 @@ Build-Depends:
 Standards-Version: 3.9.2
 
 Package: xserver-xorg-video-armada
-Architecture: armel armhf
+Architecture: armel armhf arm64
 Depends:
  ${misc:Depends},
  ${shlibs:Depends},
