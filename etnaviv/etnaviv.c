@@ -965,9 +965,10 @@ fail_accel:
 }
 
 static void etnaviv_align_bo_size(ScreenPtr pScreen, int *width, int *height,
-	int bpp)
+        int bpp)
 {
-	*width = etnaviv_pitch(*width, bpp) * 8 / bpp;
+        *width = etnaviv_pitch(*width, bpp) * 8 / bpp;
+        *width = (*width + (16-1)) & ~(16-1);
 }
 
 static Bool etnaviv_format(struct etnaviv_format *fmt, unsigned int depth,
