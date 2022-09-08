@@ -26,7 +26,7 @@
 #define ARMADA_NAME		"armada"
 #define ARMADA_DRIVER_NAME	"armada"
 
-#define DRM_MODULE_NAMES	"armada-drm", "imx-drm"
+#define DRM_MODULE_NAMES	"armada-drm", "imx-drm", "mxsfb-drm"
 #define DRM_DEFAULT_BUS_ID	NULL
 
 static const char *drm_module_names[] = { DRM_MODULE_NAMES };
